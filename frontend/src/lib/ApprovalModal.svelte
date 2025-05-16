@@ -40,7 +40,7 @@
 </script>
 
 <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
-  <div class="bg-[#f4ede1] rounded-lg p-8 min-w-[320px] max-w-[90vw] shadow-lg rounded-3xl">
+  <div class="bg-[#f4ede1] p-8 min-w-[320px] max-w-[90vw] shadow-lg rounded-3xl">
     <h2 class="text-xl font-bold mb-6">{name}</h2>
     <form on:submit|preventDefault={handleSubmit}>
       {#each Object.entries(localData) as [key, value]}

@@ -40,7 +40,7 @@
 </script>
 
 <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-8 min-w-[320px] max-w-[90vw] shadow-lg">
+  <div class="bg-[#f4ede1] rounded-lg p-8 min-w-[320px] max-w-[90vw] shadow-lg rounded-3xl">
     <h2 class="text-xl font-bold mb-6">{name}</h2>
     <form on:submit|preventDefault={handleSubmit}>
       {#each Object.entries(localData) as [key, value]}
@@ -69,7 +69,7 @@
       {/each}
       <div class="flex gap-3 justify-end mt-6">
         <button type="button" class="px-4 py-2 rounded border bg-gray-100 hover:bg-gray-200" on:click={handleCancel}>취소</button>
-        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">확인</button>
+        <button type="submit" class="px-4 py-2 rounded bg-lime-600 text-white hover:bg-lime-700">확인</button>
       </div>
     </form>
   </div>

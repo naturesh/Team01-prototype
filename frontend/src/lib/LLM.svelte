@@ -70,7 +70,26 @@
 	}
 	}
 
+	var AGENTREQUEST = false
 
+
+	// 30초 간격으로 체크 AGENTREQUEST = true -> 승인 되었는지 
+	setInterval(async () => {
+		if (AGENTREQUEST) {
+			let resp = await fetch('/check-agent-request', {
+				method: 'POST'
+			})
+			let re = await resp.json()
+
+			if (re.status) {
+				AGENTREQUEST = false
+				await openToollModal('신청한 송금이 승인되었습니다', '승인되었어요 !')
+				messages.push({ role: 'assistant', content: '송금신청이 승인 되었습니다!', type : 'tool' })
+			}
+		}
+	}, 3000)
+
+	
 	// llm stream function
 
 	let messages = $state<Message[]>([{ role: 'assistant', content: '안녕하세요!' },{ role: 'user', content: '안녕하세요!' }]);
@@ -116,6 +135,12 @@
 					const toolContent = JSON.parse(content.match(/^\[TOOL_END\](.*)\[\/TOOL_END\]$/)![1]);
     				messages.push({ role: 'assistant', content: toolContent.name, type: 'tool' });
 					await openToollModal(toolContent.name)
+
+
+					// 대리인 요청을 보낸경우 30초 간격으로 승인 여부 체크 
+					if (toolContent.name == 'sendAgentRequest') {
+						AGENTREQUEST = true
+					}
 
 				}
 				// APPROVAL_REQUIRED
@@ -204,7 +229,7 @@
 
   <div class="flex gap-2 p-2">
 	<input
-	  class="flex-1 px-3 py-2 text-base rounded-3xl h-16 bg-white"
+	  class="flex-1 px-3 py-2 text-lg rounded-3xl h-16 bg-white"
 	  bind:value={input}
 	  placeholder="메시지 입력"
 	  onkeydown={onKeydown}

@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, UploadFile, File
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from src.graph import create_graph, Command, MemorySaver 
-from src.tools import transfer, getAccountBalance
+from src.tools import transfer, getAccountBalance, sendAgentRequest
 from pydantic import BaseModel
 from typing import Union
 import json
@@ -18,7 +18,7 @@ from src.voice import voice_verify
 
 ## llm configuration 
 memory = MemorySaver()
-graph = create_graph(memory, tools=[transfer, getAccountBalance])
+graph = create_graph(memory, tools=[transfer, getAccountBalance, sendAgentRequest])
 
 
 
@@ -68,7 +68,7 @@ async def graph_generator(graph, query: Union[str, dict], thread_id: str):
             tool_parameters = event["data"]["input"]
 
             # APPROVAL_REQUIRED 도구 처리
-            if tool_name in ['transfer']:
+            if tool_name in ['transfer', 'sendAgentRequest']:
                 yield f"data: [APPROVAL_REQUIRED]{tool_name}:{json.dumps(tool_parameters)}[/APPROVAL_REQUIRED]\n\n"
         
         elif event["event"] == "on_tool_end":
@@ -121,15 +121,11 @@ async def verify_voice_id(file: UploadFile, verification_threshold=0.7) -> bool:
 
 
 
-# 블록체인 프록시
-EXPRESS_BASE_URL = 'http://localhost:3000'
 
-@app.api_route("/express/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def proxy_to_express(request: Request, path: str):
-    async with httpx.AsyncClient() as client:
-        method = request.method
-        url = f"{EXPRESS_BASE_URL}/{path}"
-        headers = dict(request.headers)
-        body = await request.body()
-        response = await client.request(method, url, headers=headers, content=body)
-        return response.text, response.status_code, response.headers.items()
+@app.post('/check-agent-request')
+async def set_voice_reference(): # file is .wav format
+    
+
+    return JSONResponse({
+        'status' : True
+    })

@@ -253,5 +253,5 @@
 {/if}
 
 {#if $ToolModalStore}
-  <ToolModal name={$ToolModalStore.name}  />
+  <ToolModal name={$ToolModalStore.name} title={''}  />
 {/if}

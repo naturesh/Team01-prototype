@@ -48,6 +48,7 @@ async def graph_generator(graph, query: Union[str, dict], thread_id: str):
         {'role': 'system', 'content': """ 
 
     -- 계좌번호 모음집 --
+    나 : 11234983749
     아들 : 110591730450
     딸 :  330010323232
     친구: 593923434398

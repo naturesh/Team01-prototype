@@ -138,7 +138,7 @@
 
 
 					// 대리인 요청을 보낸경우 30초 간격으로 승인 여부 체크 
-					if (toolContent.name == 'sendAgentRequest') {
+					if (toolContent.name == 'sendAgentRequest' && toolContent.content.includes('성공')) {
 						AGENTREQUEST = true
 					}
 
@@ -194,8 +194,7 @@
 				
 				
 			const result = await openApprovalModal(APPROVAL_REQUIRED.name, APPROVAL_REQUIRED.parameters);
-			
-			await createStream(result || {'address' : '', amount : 0}, thread_id, false)
+			await createStream(result || {'to_address': '', 'from_address': '', 'amount': 0}, thread_id, false)
 		}
 
 	}

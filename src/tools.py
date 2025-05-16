@@ -24,20 +24,22 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
     # /Users/yangtaehwan/Desktop/ton/src/reference_voices/me.wav
     # /Users/yangtaehwan/Desktop/ton/src/references_voices/me.wav
     
+
+    
+
     if not human_response['voice']:
         return 'voice_id 인증 실패'
-    
     voice = base64_to_numpy(human_response['voice'])
-
     is_same, similarity = voice_verify([os.path.join(__current_dir, 'reference_voices/me.wav'),os.path.join(__current_dir, 'reference_voices/me2.wav'),os.path.join(__current_dir, 'reference_voices/me3.wav')], voice, verification_threshold=0.5) 
     print(is_same, similarity)
-
     if (not is_same):
         return 'voice id 동일인물 인식 실패하였습니다.'
+    
+
     if human_response['amount'] > 50000:
         return f"50,000 보다 큰 {human_response['amount']}원을 송금을 시도해 실패했습니다."
     
-    if ( not human_response['to_address'] or not human_response['amount']):
+    if ( not human_response['to_address'] or not human_response['from_address'] or not human_response['amount']):
         return '송금을 취소했습니다' 
 
     from_balance = db.search(User.address == human_response['from_address'])
@@ -71,13 +73,25 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
 
     human_response = interrupt({'to_address': to_address, 'from_address': from_address, 'amount': amount})
 
+    if (not human_response['to_address'] or not human_response['from_address'] or not human_response['amount']):
+        return '송금을 취소했습니다' 
+    
+
+    if not human_response['voice']:
+        return 'voice_id 인증 실패'
+    voice = base64_to_numpy(human_response['voice'])
+    is_same, similarity = voice_verify([os.path.join(__current_dir, 'reference_voices/me.wav'),os.path.join(__current_dir, 'reference_voices/me2.wav'),os.path.join(__current_dir, 'reference_voices/me3.wav')], voice, verification_threshold=0.5) 
+    print(is_same, similarity)
+    if (not is_same):
+        return 'voice id 동일인물 인식 실패하였습니다.'
+    
+    
+    
     success = create_nft('TEST-UUID', '홍길동')
 
     if not success:
         return '블록체인 생성에 실패했습니다.'
    
-
-    
 
     # success =  sendKakaoUser()
 

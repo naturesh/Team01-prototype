@@ -73,7 +73,7 @@
                         // 3. 스트림 정리
                         stream.getTracks().forEach(track => track.stop());
                         recorder.destroy();
-                        
+                        alert('record finish')
                         resolve(base64);
                     });
                 } catch (e) {

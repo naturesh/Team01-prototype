@@ -178,24 +178,23 @@
 	const onKeydown = (e: KeyboardEvent) => e.key === 'Enter' && sendMessage();
 
 
-
 </script>
 
 
 
 
 
-<div class="h-full w-full flex flex-col mx-auto">
+<div class="h-full w-full flex flex-col mx-auto p-8">
   <div class="flex-1 overflow-auto p-2 space-y-2" bind:this={chatContainer}>
 	{#each messages as msg}
 
 		{#if msg.type == 'tool'}
-			<div class="w-full bg-amber-50 rounded-xl  px-3 py-2 text-sm break-words"><span class="text-xs text-gray-500">실행</span> : {msg.content}</div>
+			<div class="w-full bg-amber-50/70 rounded-xl  px-3 py-2 text-sm break-words"><span class="text-xs text-gray-500">실행</span> : {msg.content}</div>
 		{:else}
-			<div class="max-w-[85%] px-3 py-2 text-sm break-words rounded-xl w-full
+			<div class="max-w-[85%] px-3 py-2 text-base break-words rounded-xl w-full
 			{msg.role === 'user'
-				? 'text-right ml-auto bg-gray-100'
-				: 'text-left bg-amber-50'}">
+				? 'text-right ml-auto bg-gray-100/70'
+				: 'text-left bg-amber-50/70'}">
 			{#if msg.role == 'assistant' && msg.type != 'tool'}<span class="text-xs text-gray-500">Bella</span><br>{/if}
 			{msg.content}
 			</div>
@@ -205,7 +204,7 @@
 
   <div class="flex gap-2 p-2">
 	<input
-	  class="flex-1 px-3 py-2 text-sm rounded-3xl h-16 bg-white"
+	  class="flex-1 px-3 py-2 text-base rounded-3xl h-16 bg-white"
 	  bind:value={input}
 	  placeholder="메시지 입력"
 	  onkeydown={onKeydown}

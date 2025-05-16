@@ -20,7 +20,7 @@
     <a href="#/voice_reference" class="text-xl hover:underline">음성참조</a>
   </nav>
 
-  <div class="flex-1 flex items-center justify-center bg-gray-100">
+  <div class="flex-1 flex items-center justify-center bg-[url(/assets/images/background.png)] bg-center">
     <Router {routes} useHash let:Component>
       <div class="w-[360px] h-[640px] bg-white border rounded-3xl shadow-lg p-4 flex flex-col">
         <svelte:component this={Component} />

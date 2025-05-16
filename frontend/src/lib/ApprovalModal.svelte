@@ -49,13 +49,14 @@
   import RecordRTC from 'recordrtc';
   async function record() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
+    
+    // 1. WAV 형식 강제 설정
     const recorder = new RecordRTC(stream, {
         type: 'audio',
         mimeType: 'audio/wav',
-        recorderType: RecordRTC.StereoAudioRecorder,
+        recorderType: RecordRTC.StereoAudioRecorder, // 핵심 변경점 (WAV 강제 지정)
         desiredSampRate: 16000,
-        numberOfAudioChannels: 1
+        numberOfAudioChannels: 1 // 1채널(모노)로 설정 (필요시 조정)
     });
 
     recorder.startRecording();
@@ -65,20 +66,14 @@
         setTimeout(() => {
             recorder.stopRecording(async () => {
                 try {
-                    recorder.getDataURL((dataURL) => {
+                    // 2. getBlob() 대신 getDataURL() 직접 사용
+                    const dataURL = recorder.getDataURL((dataURL) => {
                         const base64 = dataURL.split(',')[1];
-
-                        // WAV 파일 자동 다운로드
-                        const link = document.createElement('a');
-                        link.href = dataURL;
-                        link.download = 'recorded.wav';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-
+                        
+                        // 3. 스트림 정리
                         stream.getTracks().forEach(track => track.stop());
                         recorder.destroy();
-
+                        
                         resolve(base64);
                     });
                 } catch (e) {
@@ -90,7 +85,6 @@
         }, 5000);
     });
 }
-
 
 
 

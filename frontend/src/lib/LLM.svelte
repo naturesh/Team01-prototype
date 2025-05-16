@@ -191,10 +191,10 @@
 		{#if msg.type == 'tool'}
 			<div class="w-full bg-amber-50 rounded-xl  px-3 py-2 text-sm break-words"><span class="text-xs text-gray-500">실행</span> : {msg.content}</div>
 		{:else}
-			<div class="max-w-[85%] px-3 py-2 text-sm break-words rounded-xl
+			<div class="max-w-[85%] px-3 py-2 text-sm break-words rounded-xl w-full
 			{msg.role === 'user'
-				? 'ml-auto bg-gray-100'
-				: 'mr-auto bg-amber-50'}">
+				? 'text-right ml-auto bg-gray-100'
+				: 'text-left bg-amber-50'}">
 			{#if msg.role == 'assistant' && msg.type != 'tool'}<span class="text-xs text-gray-500">Bella</span><br>{/if}
 			{msg.content}
 			</div>

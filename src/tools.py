@@ -20,8 +20,11 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
     if ( not human_response['to_address'] or not human_response['amount']):
         return '송금을 취소했습니다' 
 
-    balance = db.search(User.address == human_response['from_address'])
-    db.update({"amount" : balance[0]['amount'] - human_response['amount']}, User.address == human_response['from_address'])
+    from_balance = db.search(User.address == human_response['from_address'])
+    db.update({"amount" : from_balance[0]['amount'] - human_response['amount']}, User.address == human_response['from_address'])
+
+    to_balance = db.search(User.address == human_response['to_address'])
+    db.update({"amount" : to_balance[0]['amount'] + human_response['amount']}, User.address == human_response['to_address'])
 
     return f"최종 확인된 정보에 따라 {human_response['to_address']} 계좌로 {human_response['amount']}원을 송금했습니다."
 

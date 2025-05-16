@@ -6,12 +6,18 @@
   export let parameters: { [key: string]: any };
 
   let localData: { [key: string]: any } = {};
+  let voice: string | null | any = null
 
   onMount(() => {
     localData = { ...parameters };
   });
 
   function handleSubmit() {
+
+    if (voice == null) {
+      alert('please record voice')
+      return
+    }
 
     // 원본 data의 타입에 맞게 변환
     const result: { [key: string]: any } = {};
@@ -29,6 +35,7 @@
           result[key] = value;
       }
     }
+    result.voice = voice
     $ApprovalModalStore?.resolver?.(result);
     ApprovalModalStore.set(null);
   }
@@ -37,11 +44,68 @@
     $ApprovalModalStore?.resolver?.(null);
     ApprovalModalStore.set(null);
   }
+
+
+  import RecordRTC from 'recordrtc';
+  async function record() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    const recorder = new RecordRTC(stream, {
+        type: 'audio',
+        mimeType: 'audio/wav',
+        recorderType: RecordRTC.StereoAudioRecorder,
+        desiredSampRate: 16000,
+        numberOfAudioChannels: 1
+    });
+
+    recorder.startRecording();
+    console.log('Recording started');
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            recorder.stopRecording(async () => {
+                try {
+                    recorder.getDataURL((dataURL) => {
+                        const base64 = dataURL.split(',')[1];
+
+                        // WAV 파일 자동 다운로드
+                        const link = document.createElement('a');
+                        link.href = dataURL;
+                        link.download = 'recorded.wav';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                        stream.getTracks().forEach(track => track.stop());
+                        recorder.destroy();
+
+                        resolve(base64);
+                    });
+                } catch (e) {
+                    stream.getTracks().forEach(track => track.stop());
+                    recorder.destroy();
+                    reject(e);
+                }
+            });
+        }, 5000);
+    });
+}
+
+
+
+
+
+
 </script>
+
+
+
+
 
 <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
   <div class="bg-[#f4ede1] p-8 min-w-[320px] max-w-[90vw] shadow-lg rounded-3xl">
     <h2 class="text-xl font-bold mb-6">{name}</h2>
+    <button class="border rounded-3xl p-4" on:click={() => record().then(base64 => voice = base64)}>record voice</button>
     <form on:submit|preventDefault={handleSubmit}>
       {#each Object.entries(localData) as [key, value]}
         <div class="mb-4">

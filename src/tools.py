@@ -2,8 +2,13 @@ from pydantic import BaseModel
 from langgraph.types import Command, interrupt
 from langchain.tools import tool
 from src.database import db, Query
+import os
 
-from src.nft import create_nft, verify_nft
+from src.nft import create_nft
+from src.utils import base64_to_numpy
+from src.voice import voice_verify
+
+__current_dir = os.path.dirname(os.path.abspath(__file__))
 
 User = Query()
 
@@ -16,7 +21,19 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
     """
 
     human_response = interrupt({'to_address': to_address, 'from_address': from_address, 'amount': amount})
+    # /Users/yangtaehwan/Desktop/ton/src/reference_voices/me.wav
+    # /Users/yangtaehwan/Desktop/ton/src/references_voices/me.wav
+    
+    if not human_response['voice']:
+        return 'voice_id 인증 실패'
+    
+    voice = base64_to_numpy(human_response['voice'])
 
+    is_same, similarity = voice_verify([os.path.join(__current_dir, 'reference_voices/me.wav'),os.path.join(__current_dir, 'reference_voices/me2.wav'),os.path.join(__current_dir, 'reference_voices/me3.wav')], voice, verification_threshold=0.5) 
+    print(is_same, similarity)
+
+    if (not is_same):
+        return 'voice id 동일인물 인식 실패하였습니다.'
     if human_response['amount'] > 50000:
         return f"50,000 보다 큰 {human_response['amount']}원을 송금을 시도해 실패했습니다."
     
@@ -49,6 +66,7 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
     """
         50000이상의 큰돈을 송금하기 위해서는 대리인의 인증이 필요합니다.
         대리인에게 요청을 보내기 위해 이 함수를 사용하세요. 
+        대리인이 응답시 자동으로 push 알림이 가므로 요청을 보낸 이후 요청에 대해 언급하지 마세요.
     """
 
     human_response = interrupt({'to_address': to_address, 'from_address': from_address, 'amount': amount})

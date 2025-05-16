@@ -10,3 +10,8 @@ database_file_path = os.path.join(__current_dir, "db.json")
 
 db = TinyDB(database_file_path)
 
+db.insert({
+    'address': '11234983749',
+    'amount': 300000
+})
+

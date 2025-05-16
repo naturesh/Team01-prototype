@@ -166,9 +166,10 @@
 			if (APPROVAL_REQUIRED.parameters.amount >= exceedLimit) {
 				await openDepositWarningModal(APPROVAL_REQUIRED.name, APPROVAL_REQUIRED.parameters, exceedLimit);
 			}
-			
+				
+				
 			const result = await openApprovalModal(APPROVAL_REQUIRED.name, APPROVAL_REQUIRED.parameters);
-
+			
 			await createStream(result || {'address' : '', amount : 0}, thread_id, false)
 		}
 

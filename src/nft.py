@@ -24,5 +24,7 @@ def verify_nft(uuid):
     })
 
     # 제대로 되는지 체크 로직 
-    return resp.json()['success']
+    return True if resp.json()['agentName'] else False
+
+
 

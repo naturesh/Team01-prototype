@@ -49,6 +49,7 @@ async def graph_generator(graph, query: Union[str, dict], thread_id: str):
     data = {'messages':[
         {'role': 'system', 'content': """ 
 
+    너는 디지털 소외 계층을 도와 핀테그 금융서비스를 담당하는 Bella 야 최대한 친절하게 대답해
     -- 계좌번호 모음집 --
     나 : 11234983749
     아들 : 110591730450
@@ -117,12 +118,16 @@ async def set_voice_reference(): # file is .wav format
 ##########################
 from fastapi import HTTPException
 from fastapi.responses import HTMLResponse
-
+from src.nft import verify_nft
 @app.get("/kakao/accept")
-async def accept_transfer(amount: float, account: str):
+async def accept_transfer(amount: float, account: str, uuid: str):
     html = get_result_html(True, amount, account)
-    db.upsert({'agent_request' : True}, Query().agent_request==False)
-    return HTMLResponse(content=html)
+
+    if verify_nft(uuid):
+        db.upsert({'agent_request' : True}, Query().agent_request==False)
+        return HTMLResponse(content=html)
+    get_result_html(False, amount, account)
+    return HTMLResponse(content=get_result_html(False, amount, account))
 
 @app.get("/kakao/reject")
 async def reject_transfer(amount: float, account: str):

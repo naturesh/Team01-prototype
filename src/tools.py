@@ -12,7 +12,7 @@ import asyncio
 
 __current_dir = os.path.dirname(os.path.abspath(__file__))
 
-
+UUID = str(uuid.uuid1())
 
 User = Query()
 
@@ -76,7 +76,7 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
         대리인에게 요청을 보내기 위해 이 함수를 사용하세요. 
         대리인이 응답시 자동으로 push 알림이 가므로 요청을 보낸 이후 요청에 대해 언급하지 마세요.
     """
-
+    global UUID
     human_response = interrupt({'to_address': to_address, 'from_address': from_address, 'amount': amount})
 
     if (not human_response['to_address'] or not human_response['from_address'] or not human_response['amount']):
@@ -91,9 +91,11 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
     if (not is_same):
         return 'voice id 동일인물 인식 실패하였습니다.'
     
+    UUID = str(uuid.uuid1())
+
     
     # 지속적인 수정 필요 
-    success = create_nft(str(uuid.uuid1()), '01012341234')
+    success = create_nft(UUID, '01012341234')
     print(success)
     if not success:
         return '블록체인 생성에 실패했습니다.'
@@ -146,9 +148,11 @@ async def refresh_access_token(refresh_token: str):
 
 async def send_transfer_request(access_token: str, friend_id: str, amount: float, account: str):
     """송금 요청 메시지 전송"""
+    global UUID
+
     try:
-        accept_url = f"{NGROK_BASE_URL}/kakao/accept?amount={amount}&account={account}"
-        reject_url = f"{NGROK_BASE_URL}/kakao/reject?amount={amount}&account={account}"
+        accept_url = f"{NGROK_BASE_URL}/kakao/accept?amount={amount}&account={account}&uuid={UUID}"
+        reject_url = f"{NGROK_BASE_URL}/kakao/reject?amount={amount}&account={account}&uuid={UUID}"
         template_data = {
             "object_type": "feed",
             "content": {

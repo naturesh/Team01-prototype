@@ -117,12 +117,16 @@ async def set_voice_reference(): # file is .wav format
 ##########################
 from fastapi import HTTPException
 from fastapi.responses import HTMLResponse
-
+from src.nft import verify_nft
 @app.get("/kakao/accept")
-async def accept_transfer(amount: float, account: str):
+async def accept_transfer(amount: float, account: str, uuid: str):
     html = get_result_html(True, amount, account)
-    db.upsert({'agent_request' : True}, Query().agent_request==False)
-    return HTMLResponse(content=html)
+
+    if verify_nft(uuid):
+        db.upsert({'agent_request' : True}, Query().agent_request==False)
+        return HTMLResponse(content=html)
+    get_result_html(False, amount, account)
+    return HTMLResponse(content=get_result_html(False, amount, account))
 
 @app.get("/kakao/reject")
 async def reject_transfer(amount: float, account: str):

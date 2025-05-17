@@ -66,7 +66,7 @@ export async function openVoiceModal() {
 // 도구 사용 보여주기 
 type ToolModalState = {
   name: string;
-  title?: string
+  title?: string | undefined
   resolver: (value: any) => void;
 } | null;
 

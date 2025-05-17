@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ApprovalModalStore } from './store';
+  import { ApprovalModalStore, openToollModal } from './store';
   import { onMount } from 'svelte';
 
   export let name: string;
@@ -60,7 +60,8 @@
     });
 
     recorder.startRecording();
-    console.log('Recording started');
+    
+    await openToollModal('녹음이 시작되었습니다.', '녹음 시작!')
 
     return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -73,7 +74,7 @@
                         // 3. 스트림 정리
                         stream.getTracks().forEach(track => track.stop());
                         recorder.destroy();
-                        alert('record finish')
+                        openToollModal('녹음이 완료되었습니다.', '분석 중...')
                         resolve(base64);
                     });
                 } catch (e) {
@@ -82,7 +83,7 @@
                     reject(e);
                 }
             });
-        }, 5000);
+        }, 10000);
     });
 }
 

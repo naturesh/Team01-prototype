@@ -133,7 +133,7 @@
 				// NOT APPROVAL_REQUIRED
 				if (/^\[TOOL_END\](.*)\[\/TOOL_END\]$/.test(content)) { 
 					const toolContent = JSON.parse(content.match(/^\[TOOL_END\](.*)\[\/TOOL_END\]$/)![1]);
-    				messages.push({ role: 'assistant', content: toolContent.name, type: 'tool' });
+    				messages.push({ role: 'assistant', content: `${toolContent.name} 도구가 사용되었습니다`, type: 'tool' });
 					await openToollModal(toolContent.name)
 
 
@@ -252,5 +252,5 @@
 {/if}
 
 {#if $ToolModalStore}
-  <ToolModal name={$ToolModalStore.name} title={''}  />
+  <ToolModal name={$ToolModalStore.name} title={$ToolModalStore.title}  />
 {/if}

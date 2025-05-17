@@ -39,6 +39,9 @@ class StreamRequest(BaseModel):
     query : Union[str, dict]
     thread_id : str
 
+class VoiceRequest(BaseModel):
+    voice_base64: str
+
 
 async def graph_generator(graph, query: Union[str, dict], thread_id: str):
 
@@ -84,7 +87,12 @@ async def stream(request: StreamRequest):
     return StreamingResponse(generator, media_type="text/event-stream")
 
 
+from src.voice import voice_to_text 
 
+@app.post('/post_voice')
+async def set_voice(request: VoiceRequest):
+    transcription = voice_to_text(request.voice_base64)
+    return transcription
 
 
 

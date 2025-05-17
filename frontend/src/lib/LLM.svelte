@@ -199,6 +199,54 @@
 		}
 	}
 
+	import RecordRTC from 'recordrtc';
+
+	let isRecording = $state(false); 
+
+	async function SpeechToText() {
+		if (isRecording) return;                
+		isRecording = true;
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			const recorder = new RecordRTC(stream, {
+				type: 'audio',
+				mimeType: 'audio/wav',
+				recorderType: RecordRTC.StereoAudioRecorder,
+				desiredSampRate: 16000,
+				numberOfAudioChannels: 1,
+			});
+			recorder.startRecording();
+			await new Promise<void>(resolve => setTimeout(resolve, 5000));
+
+			const dataURL: string = await new Promise(resolve =>
+			recorder.stopRecording(() => {
+				recorder.getDataURL(resolve);
+			})
+			);
+
+			stream.getTracks().forEach(track => track.stop());
+			recorder.destroy();
+
+			const base64 = dataURL.split(',')[1];
+
+			const res = await fetch('/post_voice', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ voice_base64: base64 }),
+			});
+			if (!res.ok) throw new Error(`STT failed: ${res.statusText}`);
+
+			const transcription = await res.text();
+
+			input = transcription;
+
+		} catch (err) {
+			console.error('SpeechToText error:', err);
+		} finally {
+			isRecording = false;
+		}
+	}
+
 	const onKeydown = (e: KeyboardEvent) => e.key === 'Enter' && sendMessage();
 
 
@@ -241,6 +289,17 @@
 	  onclick={openHelpModal}
 	  class="px-3 py-2 text-sm bg-white rounded-3xl aspect-square"
 	>❓</button>
+	<button
+	  onclick={SpeechToText}
+	  class="px-3 py-2 text-sm bg-white rounded-3xl aspect-square"
+	  disabled={isRecording} 
+	>
+	{#if isRecording}
+	⏺️
+	{:else}
+	🎙️
+	{/if}
+	</button>
   </div>
 </div>
 

@@ -14,6 +14,6 @@ def base64_to_tensor(b64_str: str):
     audio_bytes = base64.b64decode(b64_str)
     with io.BytesIO(audio_bytes) as audio_file:
         waveform, sample_rate = torchaudio.load(audio_file)
-    return waveform
+    return waveform, sample_rate
 
 

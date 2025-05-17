@@ -29,7 +29,7 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
     try:
         if not human_response['voice']:
             return 'voice_id 인증 실패'
-        voice = base64_to_tensor(human_response['voice'])
+        voice, _ = base64_to_tensor(human_response['voice'])
         is_same, similarity = voice_verify(os.path.join(__current_dir, 'reference_voices/me.wav'), voice) 
         print(is_same, similarity)
         if (not is_same):
@@ -81,7 +81,7 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
 
     if not human_response['voice']:
         return 'voice_id 인증 실패'
-    voice = base64_to_tensor(human_response['voice'])
+    voice, _ = base64_to_tensor(human_response['voice'])
     is_same, similarity = voice_verify(os.path.join(__current_dir, 'reference_voices/me.wav'), voice) 
     print(is_same, similarity)
     if (not is_same):

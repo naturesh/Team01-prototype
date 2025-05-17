@@ -66,15 +66,17 @@ export async function openVoiceModal() {
 // 도구 사용 보여주기 
 type ToolModalState = {
   name: string;
+  title?: string | undefined
   resolver: (value: any) => void;
 } | null;
 
 export const ToolModalStore = writable<ToolModalState>(null);
 
-export async function openToollModal(name: string) {
+export async function openToollModal(name: string, title?: string) {
   return new Promise((resolve) => {
     ToolModalStore.set({
       name,
+      title,
       resolver: (result) => resolve(result)
     });
   });

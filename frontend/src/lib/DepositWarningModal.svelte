@@ -29,10 +29,11 @@
     $DepositWarningModalStore?.resolver?.(null);
     DepositWarningModalStore.set(null);
   }
+  import failedImage from '../assets/tool_failed.png'
 </script>
 
 <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-8 min-w-[320px] max-w-[90vw] shadow-lg">
+  <div class="bg-[#f5ecdd] rounded-lg p-8 w-96 shadow-lg">
     <h2 class="text-xl font-bold mb-6">비정상적 송금 금액입니다.</h2>
         <div class="mb-4">
           {#if warningMessage}
@@ -40,6 +41,9 @@
                 {warningMessage}
             </div>
           {/if}
+          <div class="flex justify-center items-center w-full">
+            <img src={failedImage} width="50%" height="50%" alt="">
+          </div>
         </div>
       <div class="flex gap-3 justify-end mt-6">
         <button type="button" class="px-4 py-2 rounded border bg-gray-100 hover:bg-gray-200" on:click={handleCheck}>확인</button>

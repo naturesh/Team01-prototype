@@ -70,7 +70,26 @@
 	}
 	}
 
+	var AGENTREQUEST = false
 
+
+	// 30초 간격으로 체크 AGENTREQUEST = true -> 승인 되었는지 
+	setInterval(async () => {
+		if (AGENTREQUEST) {
+			let resp = await fetch('/check-agent-request', {
+				method: 'POST'
+			})
+			let re = await resp.json()
+
+			if (re.status) {
+				AGENTREQUEST = false
+				await openToollModal('신청한 송금이 승인되었습니다', '승인되었어요 !')
+				messages.push({ role: 'assistant', content: '송금신청이 승인 되었습니다!', type : 'tool' })
+			}
+		}
+	}, 3000)
+
+	
 	// llm stream function
 
 	let messages = $state<Message[]>([{ role: 'assistant', content: '안녕하세요!' },{ role: 'user', content: '안녕하세요!' }]);
@@ -114,8 +133,14 @@
 				// NOT APPROVAL_REQUIRED
 				if (/^\[TOOL_END\](.*)\[\/TOOL_END\]$/.test(content)) { 
 					const toolContent = JSON.parse(content.match(/^\[TOOL_END\](.*)\[\/TOOL_END\]$/)![1]);
-    				messages.push({ role: 'assistant', content: toolContent.name, type: 'tool' });
+    				messages.push({ role: 'assistant', content: `${toolContent.name} 도구가 사용되었습니다`, type: 'tool' });
 					await openToollModal(toolContent.name)
+
+
+					// 대리인 요청을 보낸경우 30초 간격으로 승인 여부 체크 
+					if (toolContent.name == 'sendAgentRequest' && toolContent.content.includes('성공')) {
+						AGENTREQUEST = true
+					}
 
 				}
 				// APPROVAL_REQUIRED
@@ -169,8 +194,7 @@
 				
 				
 			const result = await openApprovalModal(APPROVAL_REQUIRED.name, APPROVAL_REQUIRED.parameters);
-			
-			await createStream(result || {'address' : '', amount : 0}, thread_id, false)
+			await createStream(result || {'to_address': '', 'from_address': '', 'amount': 0}, thread_id, false)
 		}
 
 	}
@@ -184,17 +208,17 @@
 
 
 
-<div class="h-full w-full flex flex-col mx-auto border p-5 rounded-3xl">
+<div class="h-full w-full flex flex-col mx-auto p-8">
   <div class="flex-1 overflow-auto p-2 space-y-2" bind:this={chatContainer}>
 	{#each messages as msg}
 
 		{#if msg.type == 'tool'}
-			<div class="w-full bg-amber-50 rounded-xl  px-3 py-2 text-sm break-words">실행 : {msg.content}</div>
+			<div class="w-full bg-amber-50/70 rounded-xl  px-3 py-2 text-sm break-words"><span class="text-xs text-gray-500">실행</span> : {msg.content}</div>
 		{:else}
-			<div class="max-w-[85%] px-3 py-2 text-sm break-words rounded-xl
+			<div class="max-w-[85%] px-3 py-2 text-base break-words rounded-xl w-full
 			{msg.role === 'user'
-				? 'ml-auto bg-gray-100'
-				: 'mr-auto bg-amber-100'}">
+				? 'text-right ml-auto bg-gray-100/70'
+				: 'text-left bg-amber-50/70'}">
 			{#if msg.role == 'assistant' && msg.type != 'tool'}<span class="text-xs text-gray-500">Bella</span><br>{/if}
 			{msg.content}
 			</div>
@@ -202,16 +226,16 @@
 	{/each}
   </div>
 
-  <div class="flex gap-2 p-2 border-t">
+  <div class="flex gap-2 p-2">
 	<input
-	  class="flex-1 px-3 py-2 border text-sm"
+	  class="flex-1 px-3 py-2 text-lg rounded-3xl h-16 bg-white"
 	  bind:value={input}
 	  placeholder="메시지 입력"
 	  onkeydown={onKeydown}
 	/>
 	<button
 	  onclick={sendMessage}
-	  class="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200"
+	  class="px-3 py-2 text-sm bg-white rounded-3xl aspect-square"
 	>전송</button>
   </div>
 </div>
@@ -228,5 +252,5 @@
 {/if}
 
 {#if $ToolModalStore}
-  <ToolModal name={$ToolModalStore.name}  />
+  <ToolModal name={$ToolModalStore.name} title={$ToolModalStore.title}  />
 {/if}

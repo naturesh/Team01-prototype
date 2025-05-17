@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, UploadFile, File
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from src.graph import create_graph, Command, MemorySaver 
-from src.tools import transfer, getAccountBalance
+from src.tools import transfer, getAccountBalance, sendAgentRequest
 from pydantic import BaseModel
 from typing import Union
 import json
@@ -18,7 +18,7 @@ from src.voice import voice_verify
 
 ## llm configuration 
 memory = MemorySaver()
-graph = create_graph(memory, tools=[transfer, getAccountBalance])
+graph = create_graph(memory, tools=[transfer, getAccountBalance, sendAgentRequest])
 
 
 
@@ -68,7 +68,7 @@ async def graph_generator(graph, query: Union[str, dict], thread_id: str):
             tool_parameters = event["data"]["input"]
 
             # APPROVAL_REQUIRED 도구 처리
-            if tool_name in ['transfer']:
+            if tool_name in ['transfer', 'sendAgentRequest']:
                 yield f"data: [APPROVAL_REQUIRED]{tool_name}:{json.dumps(tool_parameters)}[/APPROVAL_REQUIRED]\n\n"
         
         elif event["event"] == "on_tool_end":
@@ -87,49 +87,11 @@ async def stream(request: StreamRequest):
 
 
 
-@app.post('/set-voice-reference')
-async def set_voice_reference(file: UploadFile = File(...)): # file is .wav format
-    
-    
-    audio_buffer = io.BytesIO(await file.read())
-    _, data = wavfile.read(audio_buffer) # data is np.darray
 
-    # insert database 
-    voice_reference = db.table('voice_reference')
-    voice_reference.insert({
-        'phone_number': '01012345678',
-        'reference': [numpy_to_base64(data)]
+
+@app.post('/check-agent-request')
+async def set_voice_reference(): # file is .wav format
+    
+    return JSONResponse({
+        'status' : True
     })
-
-    
-
-# voice id verification 
-async def verify_voice_id(file: UploadFile, verification_threshold=0.7) -> bool:
-
-    audio_buffer = io.BytesIO(await file.read())
-    _, data = wavfile.read(audio_buffer) # data is np.darray
-
-
-    query = Query()
-    voice_reference = db.table('voice_reference')
-    result = voice_reference.search(query.phone_number == '01012345678')[0] # 0번째 결과
-
-    ref_array = base64_to_numpy(result['reference'][0], np.int16) # 0번째만 사용 
-
-    is_same, similarity = voice_verify([ref_array], data, verification_threshold=verification_threshold) 
-    return is_same
-
-
-
-# 블록체인 프록시
-EXPRESS_BASE_URL = 'http://localhost:3000'
-
-@app.api_route("/express/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def proxy_to_express(request: Request, path: str):
-    async with httpx.AsyncClient() as client:
-        method = request.method
-        url = f"{EXPRESS_BASE_URL}/{path}"
-        headers = dict(request.headers)
-        body = await request.body()
-        response = await client.request(method, url, headers=headers, content=body)
-        return response.text, response.status_code, response.headers.items()

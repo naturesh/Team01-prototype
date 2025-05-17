@@ -1,17 +1,23 @@
 <script lang="ts">
-  import { ApprovalModalStore } from './store';
+  import { ApprovalModalStore, openToollModal } from './store';
   import { onMount } from 'svelte';
 
   export let name: string;
   export let parameters: { [key: string]: any };
 
   let localData: { [key: string]: any } = {};
+  let voice: string | null | any = null
 
   onMount(() => {
     localData = { ...parameters };
   });
 
   function handleSubmit() {
+
+    if (voice == null) {
+      alert('please record voice')
+      return
+    }
 
     // 원본 data의 타입에 맞게 변환
     const result: { [key: string]: any } = {};
@@ -29,6 +35,7 @@
           result[key] = value;
       }
     }
+    result.voice = voice
     $ApprovalModalStore?.resolver?.(result);
     ApprovalModalStore.set(null);
   }
@@ -37,11 +44,63 @@
     $ApprovalModalStore?.resolver?.(null);
     ApprovalModalStore.set(null);
   }
+
+
+  import RecordRTC from 'recordrtc';
+  async function record() {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    
+    // 1. WAV 형식 강제 설정
+    const recorder = new RecordRTC(stream, {
+        type: 'audio',
+        mimeType: 'audio/wav',
+        recorderType: RecordRTC.StereoAudioRecorder, // 핵심 변경점 (WAV 강제 지정)
+        desiredSampRate: 16000,
+        numberOfAudioChannels: 1 // 1채널(모노)로 설정 (필요시 조정)
+    });
+
+    recorder.startRecording();
+    
+    await openToollModal('녹음이 시작되었습니다.', '녹음 시작!')
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            recorder.stopRecording(async () => {
+                try {
+                    // 2. getBlob() 대신 getDataURL() 직접 사용
+                    const dataURL = recorder.getDataURL((dataURL) => {
+                        const base64 = dataURL.split(',')[1];
+                        
+                        // 3. 스트림 정리
+                        stream.getTracks().forEach(track => track.stop());
+                        recorder.destroy();
+                        openToollModal('녹음이 완료되었습니다.', '분석 중...')
+                        resolve(base64);
+                    });
+                } catch (e) {
+                    stream.getTracks().forEach(track => track.stop());
+                    recorder.destroy();
+                    reject(e);
+                }
+            });
+        }, 10000);
+    });
+}
+
+
+
+
+
 </script>
 
+
+
+
+
 <div class="fixed inset-0 bg-black/10 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-8 min-w-[320px] max-w-[90vw] shadow-lg">
+  <div class="bg-[#f4ede1] p-8 min-w-[320px] max-w-[90vw] shadow-lg rounded-3xl">
     <h2 class="text-xl font-bold mb-6">{name}</h2>
+    <button class="border rounded-3xl p-4" on:click={() => record().then(base64 => voice = base64)}>record voice</button>
     <form on:submit|preventDefault={handleSubmit}>
       {#each Object.entries(localData) as [key, value]}
         <div class="mb-4">
@@ -69,7 +128,7 @@
       {/each}
       <div class="flex gap-3 justify-end mt-6">
         <button type="button" class="px-4 py-2 rounded border bg-gray-100 hover:bg-gray-200" on:click={handleCancel}>취소</button>
-        <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">확인</button>
+        <button type="submit" class="px-4 py-2 rounded bg-lime-600 text-white hover:bg-lime-700">확인</button>
       </div>
     </form>
   </div>

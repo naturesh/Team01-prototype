@@ -49,6 +49,7 @@ async def graph_generator(graph, query: Union[str, dict], thread_id: str):
     data = {'messages':[
         {'role': 'system', 'content': """ 
 
+    너는 디지털 소외 계층을 도와 핀테그 금융서비스를 담당하는 Bella 야 최대한 친절하게 대답해
     -- 계좌번호 모음집 --
     나 : 11234983749
     아들 : 110591730450

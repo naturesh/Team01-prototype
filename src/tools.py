@@ -5,7 +5,7 @@ from src.database import db, Query
 import os
 
 from src.nft import create_nft
-from src.utils import base64_to_numpy
+from src.utils import base64_to_tensor
 from src.voice import voice_verify
 
 __current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,14 +26,16 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
     
 
     
-
-    if not human_response['voice']:
-        return 'voice_id 인증 실패'
-    voice = base64_to_numpy(human_response['voice'])
-    is_same, similarity = voice_verify([os.path.join(__current_dir, 'reference_voices/me.wav')], voice, verification_threshold=0.51) 
-    print(is_same, similarity)
-    if (not is_same):
-        return 'voice id 동일인물 인식 실패하였습니다.'
+    try:
+        if not human_response['voice']:
+            return 'voice_id 인증 실패'
+        voice = base64_to_tensor(human_response['voice'])
+        is_same, similarity = voice_verify(os.path.join(__current_dir, 'reference_voices/me.wav'), voice) 
+        print(is_same, similarity)
+        if (not is_same):
+            return 'voice id 동일인물 인식 실패하였습니다.'
+    except Exception as e:
+        print(e)
     
 
     if human_response['amount'] > 50000:
@@ -79,8 +81,8 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
 
     if not human_response['voice']:
         return 'voice_id 인증 실패'
-    voice = base64_to_numpy(human_response['voice'])
-    is_same, similarity = voice_verify([os.path.join(__current_dir, 'reference_voices/me.wav')], voice, verification_threshold=0.51) 
+    voice = base64_to_tensor(human_response['voice'])
+    is_same, similarity = voice_verify(os.path.join(__current_dir, 'reference_voices/me.wav'), voice) 
     print(is_same, similarity)
     if (not is_same):
         return 'voice id 동일인물 인식 실패하였습니다.'

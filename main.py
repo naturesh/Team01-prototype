@@ -12,7 +12,7 @@ from scipy.io import wavfile
 import io
 import numpy as np
 
-from src.database import db, Query
+from src.database import db, Query, TinyDB, database_file_path
 
 
 ## llm configuration 
@@ -90,7 +90,16 @@ async def stream(request: StreamRequest):
 
 @app.post('/check-agent-request')
 async def set_voice_reference(): # file is .wav format
-    
-    return JSONResponse({
-        'status' : True
-    })
+
+    dbs = TinyDB(database_file_path)
+    rst = dbs.search(Query().agent_request == True)
+    dbs.close()
+    if rst:
+
+        return JSONResponse({
+            'status' : True
+        })
+    else :
+        return JSONResponse({
+            'status' : False
+        })

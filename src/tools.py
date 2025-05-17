@@ -7,9 +7,13 @@ import os
 from src.nft import create_nft
 from src.utils import base64_to_tensor
 from src.voice import voice_verify
+import uuid
 
 __current_dir = os.path.dirname(os.path.abspath(__file__))
 
+UUID = str(uuid.uuid4())
+
+db.upsert({'uuid': UUID,} , Query().roll_number==2)
 User = Query()
 
 @tool
@@ -60,7 +64,7 @@ def getAccountBalance(address: str) -> dict:
     balance = db.search(User.address == address)
 
     return {
-        'TEST-ADDRESS' : balance[0]['amount']
+        '11234983749' : balance[0]['amount']
     }
 
 
@@ -88,14 +92,14 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
         return 'voice id 동일인물 인식 실패하였습니다.'
     
     
-    
-    success = create_nft('TEST-UUID', '홍길동')
+    # 지속적인 수정 필요 
+    success = create_nft(UUID, '01012341234')
 
     if not success:
         return '블록체인 생성에 실패했습니다.'
    
 
-    # success =  sendKakaoUser()
+    # success =  sendKakaoUser() #KAKAO
 
     if success:
         return '대리인에게 요청을 성공적으로 전송하였습니다.'

@@ -175,10 +175,11 @@
 	}
 
 
-	import { ApprovalModalStore, openApprovalModal, DepositWarningModalStore, openDepositWarningModal, ToolModalStore, openToollModal } from './store'
+	import { ApprovalModalStore, openApprovalModal, DepositWarningModalStore, openDepositWarningModal, ToolModalStore, openToollModal, HelpModalStore, openHelpModal, closeHelpModal} from './store'
 	import ApprovalModal from './ApprovalModal.svelte'
 	import DepositWarningModal from './DepositWarningModal.svelte'
     import ToolModal from './ToolModal.svelte';
+	import HelpModal from './HelpModal.svelte';
 
 	// 기준 비용
 	let exceedLimit = 50000;
@@ -196,7 +197,6 @@
 			const result = await openApprovalModal(APPROVAL_REQUIRED.name, APPROVAL_REQUIRED.parameters);
 			await createStream(result || {'to_address': '', 'from_address': '', 'amount': 0}, thread_id, false)
 		}
-
 	}
 
 	const onKeydown = (e: KeyboardEvent) => e.key === 'Enter' && sendMessage();
@@ -237,6 +237,10 @@
 	  onclick={sendMessage}
 	  class="px-3 py-2 text-sm bg-white rounded-3xl aspect-square"
 	>전송</button>
+	<button
+	  onclick={openHelpModal}
+	  class="px-3 py-2 text-sm bg-white rounded-3xl aspect-square"
+	>❓</button>
   </div>
 </div>
 
@@ -250,7 +254,9 @@
 {#if $DepositWarningModalStore}
   <DepositWarningModal name={$DepositWarningModalStore.name} parameters={$DepositWarningModalStore.parameters} exceedLimit={exceedLimit} />
 {/if}
-
+{#if $HelpModalStore}
+  <HelpModal on:close={closeHelpModal} />
+{/if}
 {#if $ToolModalStore}
   <ToolModal name={$ToolModalStore.name} title={$ToolModalStore.title}  />
 {/if}

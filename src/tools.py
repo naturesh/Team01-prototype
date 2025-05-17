@@ -59,7 +59,7 @@ def transfer(to_address: str, from_address: str, amount: int) -> str:
 
 @tool
 def getAccountBalance(address: str) -> dict:
-    """ 현재 계정인 '나'의 계좌 번호를 가져와서 계좌 조회"""
+    """ 계좌 번호를 가져와서 계좌 조회"""
 
     balance = db.search(User.address == address)
 

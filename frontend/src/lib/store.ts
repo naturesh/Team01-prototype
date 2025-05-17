@@ -81,3 +81,14 @@ export async function openToollModal(name: string, title?: string) {
     });
   });
 }
+
+// 사용법 보여주기
+export const HelpModalStore = writable(false);
+
+export function openHelpModal() {
+  HelpModalStore.set(true);
+}
+
+export function closeHelpModal() {
+  HelpModalStore.set(false);
+}

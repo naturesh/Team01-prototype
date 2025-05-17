@@ -8,12 +8,13 @@ from src.nft import create_nft
 from src.utils import base64_to_tensor
 from src.voice import voice_verify
 import uuid
+import asyncio
 
 __current_dir = os.path.dirname(os.path.abspath(__file__))
 
-UUID = str(uuid.uuid4())
 
-db.upsert({'uuid': UUID,} , Query().roll_number==2)
+UUID = str(uuid.uuid1())
+
 User = Query()
 
 @tool
@@ -94,13 +95,13 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
     
     # 지속적인 수정 필요 
     success = create_nft(UUID, '01012341234')
-
+    print(success)
     if not success:
         return '블록체인 생성에 실패했습니다.'
    
 
-    # success =  sendKakaoUser() #KAKAO
-
+    db.upsert({'agent_request' : False}, Query().agent_request==True)
+    asyncio.run(request_transfer(human_response['amount'], human_response['to_address']))
     if success:
         return '대리인에게 요청을 성공적으로 전송하였습니다.'
     else:
@@ -108,3 +109,87 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
     
 
 
+
+
+###############################
+
+import httpx, json
+from fastapi import HTTPException
+
+KAKAO_REST_API_KEY='712eb4bbc1b4a4396b63e2f5c8e6e67c'
+NGROK_BASE_URL ='https://6fd0-223-194-21-240.ngrok-free.app'
+
+async def request_transfer(amount, account):
+    
+    friend_uuid = "Pgw-BzQANgQwAi4dJRQsGSERJRM_DjwIPwY-CV0"
+    refresh_token = "rSj_RCHFzdsWhEpalKgEWXx4tOG1W8-MAAAAAgoXAVAAAAGW2-Og-6bXH4eeWQ3B"
+    access_token = await refresh_access_token(refresh_token)
+    print("access_token", access_token)
+    return await send_transfer_request(
+        access_token,
+        friend_uuid,
+        amount,
+        account
+    )
+
+async def refresh_access_token(refresh_token: str):
+    KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token"
+    data = {
+        "grant_type": "refresh_token",
+        "client_id": KAKAO_REST_API_KEY,
+        "refresh_token": refresh_token
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.post(KAKAO_TOKEN_URL, data=data)
+        response.raise_for_status()
+        return response.json()['access_token']
+
+async def send_transfer_request(access_token: str, friend_id: str, amount: float, account: str):
+    """송금 요청 메시지 전송"""
+    try:
+        accept_url = f"{NGROK_BASE_URL}/kakao/accept?amount={amount}&account={account}"
+        reject_url = f"{NGROK_BASE_URL}/kakao/reject?amount={amount}&account={account}"
+        template_data = {
+            "object_type": "feed",
+            "content": {
+                "title": "송금 요청",
+                "description": (
+                    f"송금 요청 금액: {amount}원\n"
+                    f"계좌번호: {account}\n"
+                ),
+                "link": {
+                    "web_url": NGROK_BASE_URL,
+                    "mobile_web_url": NGROK_BASE_URL
+                }
+            },
+            "buttons": [
+                {
+                    "title": "수락",
+                    "link": {
+                        "web_url": accept_url,
+                        "mobile_web_url": accept_url
+                    }
+                },
+                {
+                    "title": "거절",
+                    "link": {
+                        "web_url": reject_url,
+                        "mobile_web_url": reject_url
+                    }
+                }
+            ]
+        }
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://kapi.kakao.com/v1/api/talk/friends/message/default/send",
+                headers={"Authorization": f"Bearer {access_token}"},
+                data={
+                    "receiver_uuids": json.dumps([friend_id]),
+                    "template_object": json.dumps(template_data)
+                }
+            )
+            response.raise_for_status()
+            return response.json()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

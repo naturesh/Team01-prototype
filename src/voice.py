@@ -47,8 +47,8 @@ import torchaudio.transforms as T
 
 from .utils import base64_to_tensor 
 
-processor = WhisperProcessor.from_pretrained("openai/whisper-tiny")
-model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny")
+processor = WhisperProcessor.from_pretrained("openai/whisper-small")
+model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = model.to(device)

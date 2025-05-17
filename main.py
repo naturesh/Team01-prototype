@@ -13,8 +13,7 @@ import io
 import numpy as np
 
 from src.database import db, Query
-from src.utils import numpy_to_base64, base64_to_numpy
-from src.voice import voice_verify
+
 
 ## llm configuration 
 memory = MemorySaver()

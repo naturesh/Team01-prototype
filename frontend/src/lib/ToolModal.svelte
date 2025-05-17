@@ -3,7 +3,7 @@
 
   import checkImage from '../assets/tool_success.png'
   export let name: string;
-  export let title: string
+  export let title: string | undefined;
   
   function handleSubmit() {
 

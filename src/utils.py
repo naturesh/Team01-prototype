@@ -1,21 +1,19 @@
 import base64
 import numpy as np
-
+import torch
 
 
 # TinyDB, wav array 저장 도구 
-def numpy_to_base64(arr: np.ndarray) -> str:
-    """ Numpy array를 base64 문자열로 변환 """
-    arr_bytes = arr.tobytes()
-    b64_bytes = base64.b64encode(arr_bytes)
-    b64_str = b64_bytes.decode('utf-8')
-    return b64_str
 
-def base64_to_numpy(b64_str: str, dtype=np.int16) -> np.ndarray:
-    """ base64 문자열을 numpy array로 복원 """
-    b64_bytes = b64_str.encode('utf-8')
-    arr_bytes = base64.b64decode(b64_bytes)
-    arr = np.frombuffer(arr_bytes, dtype=dtype)
-    return arr
+
+import base64
+import io
+import torchaudio
+
+def base64_to_tensor(b64_str: str):
+    audio_bytes = base64.b64decode(b64_str)
+    with io.BytesIO(audio_bytes) as audio_file:
+        waveform, sample_rate = torchaudio.load(audio_file)
+    return waveform
 
 

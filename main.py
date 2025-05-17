@@ -12,7 +12,7 @@ from scipy.io import wavfile
 import io
 import numpy as np
 
-from src.database import db, Query
+from src.database import db, Query, TinyDB, database_file_path
 
 
 ## llm configuration 
@@ -98,7 +98,69 @@ async def set_voice(request: VoiceRequest):
 
 @app.post('/check-agent-request')
 async def set_voice_reference(): # file is .wav format
-    
-    return JSONResponse({
-        'status' : True
-    })
+
+    dbs = TinyDB(database_file_path)
+    rst = dbs.search(Query().agent_request == True)
+    dbs.close()
+    if rst:
+
+        return JSONResponse({
+            'status' : True
+        })
+    else :
+        return JSONResponse({
+            'status' : False
+        })
+
+
+
+##########################
+from fastapi import HTTPException
+from fastapi.responses import HTMLResponse
+
+@app.get("/kakao/accept")
+async def accept_transfer(amount: float, account: str):
+    html = get_result_html(True, amount, account)
+    db.upsert({'agent_request' : True}, Query().agent_request==False)
+    return HTMLResponse(content=html)
+
+@app.get("/kakao/reject")
+async def reject_transfer(amount: float, account: str):
+    html = get_result_html(False, amount, account)
+    print('-----------------reject')
+    return HTMLResponse(content=html)
+
+def get_result_html(accepted: bool, amount, account):
+    color = "#4CAF50" if accepted else "#F44336"
+    status = "수락" if accepted else "거절"
+    icon = "💸" if accepted else "❌"
+    html = f"""
+    <div style="
+        max-width: 360px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        padding: 32px 28px 24px 28px;
+        font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        text-align: center;
+        border: 2px solid #f3f3f3;
+    ">
+        <div style="font-size:2.2em; margin-bottom: 10px; color: {color};">
+            <span style="vertical-align:middle;">{icon}</span>
+        </div>
+        <div style="font-size:1.3em; font-weight:bold; margin-bottom: 18px; color:#222;">
+            송금이 {status}되었습니다.
+        </div>
+        <div style="font-size:1.1em; margin-bottom: 10px;">
+            <b>금액</b> : <span style="color:#1976D2;">{int(amount):,}원</span>
+        </div>
+        <div style="font-size:1.1em; margin-bottom: 18px;">
+            <b>계좌번호</b> : <span style="color:#1976D2;">{account}</span>
+        </div>
+        <div style="font-size:0.95em; color:#888;">
+            금융 인증 서비스
+        </div>
+    </div>
+    """
+    return html

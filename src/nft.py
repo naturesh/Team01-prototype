@@ -14,15 +14,15 @@ def create_nft(uuid, agentName):
 
 
     # 제대로 되는지 체크 로직 
-    return True
+    return resp.json()['success']
 
 
 def verify_nft(uuid):
 
-    resp = requests.post('https://mdoys95xl0.execute-api.ap-northeast-2.amazonaws.com/dev/verify', data=json.dumps({
+    resp = requests.get('https://mdoys95xl0.execute-api.ap-northeast-2.amazonaws.com/dev/verify', params={
         'uuid' : uuid,
-    }))
+    })
 
     # 제대로 되는지 체크 로직 
-    return True
-   
+    return resp.json()['success']
+

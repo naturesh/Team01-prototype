@@ -40,17 +40,18 @@ def voice_verify(ref, test):
     return prediction, score
 
 
-from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+from transformers import WhisperProcessor, WhisperForConditionalGeneration 
 import torch
 import soundfile as sf
 import torchaudio.transforms as T
 
 from .utils import base64_to_tensor 
 
-processor = Wav2Vec2Processor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean") 
-model = Wav2Vec2ForCTC.from_pretrained("kresnik/wav2vec2-large-xlsr-korean")       
+processor = WhisperProcessor.from_pretrained("openai/whisper-tiny")
+model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-tiny")
 
-
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = model.to(device)
 
 def voice_to_text(target: str):
     speech, sample_rate = base64_to_tensor(target)                      
@@ -60,17 +61,15 @@ def voice_to_text(target: str):
         speech = resampler(torch.from_numpy(speech)).numpy()
         sample_rate = 16000
 
-    speech = np.squeeze(speech)
+    waveform = np.squeeze(speech)
+    input_features = processor(waveform, sampling_rate=16000, return_tensors="pt").input_features.to(device)
 
-    inputs = processor(speech, sampling_rate=sample_rate, return_tensors="pt", padding="longest") 
+    forced_decoder_ids = processor.get_decoder_prompt_ids(language="korean", task="transcribe")
+    generated_ids = model.generate(input_features, forced_decoder_ids=forced_decoder_ids)
 
-    with torch.no_grad():
-        logits = model(inputs.input_values).logits                                    
-
-    predicted_ids = torch.argmax(logits, dim=-1)                                 
-    transcription = processor.batch_decode(predicted_ids)[0] 
-
+    transcription = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
     return transcription
+
 
 
 

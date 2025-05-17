@@ -13,7 +13,6 @@ import asyncio
 __current_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-UUID = str(uuid.uuid1())
 
 User = Query()
 
@@ -94,7 +93,7 @@ def sendAgentRequest(to_address: str, from_address: str, amount: int) -> str:
     
     
     # 지속적인 수정 필요 
-    success = create_nft(UUID, '01012341234')
+    success = create_nft(str(uuid.uuid1()), '01012341234')
     print(success)
     if not success:
         return '블록체인 생성에 실패했습니다.'
